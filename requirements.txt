@@ -2,3 +2,5 @@ Flask==2.0.1          # Flask web framework
 requests==2.25.1      # HTTP library for making requests
 Jinja2==3.0.1         # Templating engine for Python
 Werkzeug==2.0.1       # WSGI utility library for Python
+gunicorn==20.1.0  # or the latest version
+
