@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP8266 Car Control</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            background-color: #ffffff;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #000000;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+        }
+        .btn1 {
+            color: transparent;
+            border: none;
+            background-color: transparent;
+        }
+        .btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            font-size: 2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background-color: #000000;
+            color: rgb(9, 165, 25);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .btn:hover {
+            background-color:rgb(9, 165, 25);
+            transform: scale(1.05);
+            color: #000000;
+        }
+        .btn-stop {
+            background-color: rgb(255, 255, 255);
+            color: #ffffff;
+        }
+        .btn-stop:hover {
+            background-color: #ffffff;
+            color: #ffffff;
+        }
+       
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 50px;
+        }
+        .image-container img {
+            max-width: 700px;
+            height: 500px;
+            border-radius: 10px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column;
+            }
+            .controls {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+            .btn {
+                font-size: 1.5em;
+            }
+        }
+        @media (orientation: landscape) and (min-width: 601px) {
+            .controls {
+                grid-template-columns: repeat(3, 150px);
+                grid-template-rows: repeat(3, 150px);
+            }
+            .btn {
+                font-size: 3em;
+            }
+            .image-container img {
+                max-width: 800px;
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>R O L L M A T E</h1>
+    <div class="container">
+        <div class="controls">
+            <!-- Row 1 -->
+            <button class="btn1" onclick="sendCommand('')"></button>
+            <button class="btn" onclick="sendCommand('F')">⬆</button>
+            <button class="btn1" onclick="sendCommand('')"></button>
+
+            <!-- Row 2 -->
+            <button class="btn" onclick="sendCommand('L')">⬅</button>
+            <button class="btn btn-stop" onclick="sendCommand('S')">S</button>
+            <button class="btn" onclick="sendCommand('R')">➡</button>
+
+            <!-- Row 3 -->
+            <button class="btn1" onclick="sendCommand('')"></button>
+            <button class="btn" onclick="sendCommand('B')">⬇</button>
+            <button class="btn1" onclick="sendCommand('')"></button>
+        </div>
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='images/1.png') }}" alt="Control Image">
+        </div>
+    </div>
+
+    <script>
+        let commandInterval;
+
+        function sendCommand(cmd) {
+            if (cmd) {
+                fetch(`/command/${cmd}`)
+                    .then(response => response.text())
+                    .then(data => console.log(data))
+                    .catch(error => console.error("Error:", error));
+            }
+        }
+
+        function startCommand(cmd) {
+            if (cmd !== 'S') {
+                sendCommand(cmd);
+                commandInterval = setInterval(() => sendCommand(cmd), 100);
+            }
+        }
+
+        function stopCommand() {
+            if (commandInterval) {
+                clearInterval(commandInterval);
+                sendCommand('S'); // Send stop command when button is released
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('mousedown', (e) => startCommand(e.target.textContent.trim()));
+                button.addEventListener('mouseup', stopCommand);
+                button.addEventListener('mouseleave', stopCommand);
+            });
+
+            const stopButton = document.querySelector('.btn-stop');
+            stopButton.removeEventListener('mousedown', startCommand);
+            stopButton.removeEventListener('mouseup', stopCommand);
+            stopButton.removeEventListener('mouseleave', stopCommand);
+            stopButton.addEventListener('click', () => sendCommand('S'));
+        });
+    </script>
+</body>
+</html>
